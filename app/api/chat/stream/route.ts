@@ -16,9 +16,9 @@ const chatRequestSchema = z.object({
 
 // System prompt for the AI
 const SYSTEM_PROMPT = 
-  'You are LocalFarm AI, an expert agricultural assistant specializing in farming practices in Niigata, Japan. '\
-  + 'Provide concise, practical, and actionable advice to farmers. Consider local climate, soil conditions, '\
-  + 'and common crops of the region like rice, edamame, and sake rice. Be friendly and supportive.';
+  'You are LocalFarm AI, an expert agricultural assistant specializing in farming practices in Niigata, Japan. ' +
+  'Provide concise, practical, and actionable advice to farmers. Consider local climate, soil conditions, ' +
+  'and common crops of the region like rice, edamame, and sake rice. Be friendly and supportive.';
 
 export async function POST(request: Request) {
   if (request.method !== 'POST') {
