@@ -11,7 +11,7 @@ export const openai = new OpenAI({
 export async function generateFarmingAdvice(crop: string, location: string = 'Niigata, Japan') {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -38,7 +38,7 @@ export async function analyzeImage(imageDescription: string, crop: string) {
     // In a real implementation, this would process an actual image
     // For now, we simulate image analysis using a text description
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -63,7 +63,7 @@ export async function analyzeImage(imageDescription: string, crop: string) {
 export async function chatWithAI(message: string, history: { role: 'user' | 'assistant' | 'system', content: string }[] = []) {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -89,7 +89,7 @@ export async function chatWithAI(message: string, history: { role: 'user' | 'ass
 export async function* streamChatCompletion(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): AsyncGenerator<string> {
   try {
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4', // Or 'gpt-4-turbo' or other preferred model
+      model: 'gpt-4o-mini', // Or 'gpt-4-turbo' or other preferred model
       messages: messages,
       stream: true,
     });

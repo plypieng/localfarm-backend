@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUserId } from '@/lib/auth'; // Assuming @/lib maps to d:/Localfarm/localfarm-backend/lib
 import { streamChatCompletion } from '@/lib/openai';
-import prisma from '@/lib/prisma'; // Assuming @/lib maps to d:/Localfarm/localfarm-backend/lib
+import { prisma } from '@/lib/prisma';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 // Zod schema for input validation
@@ -19,6 +19,19 @@ const SYSTEM_PROMPT =
   'You are LocalFarm AI, an expert agricultural assistant specializing in farming practices in Niigata, Japan. ' +
   'Provide concise, practical, and actionable advice to farmers. Consider local climate, soil conditions, ' +
   'and common crops of the region like rice, edamame, and sake rice. Be friendly and supportive.';
+
+const allowedOrigin = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3001';
+
+export async function OPTIONS(request: Request) {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': allowedOrigin,
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
 
 export async function POST(request: Request) {
   if (request.method !== 'POST') {
@@ -103,6 +116,7 @@ export async function POST(request: Request) {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': allowedOrigin,
       },
     });
 

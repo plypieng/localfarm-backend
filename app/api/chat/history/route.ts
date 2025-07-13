@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUserId } from '@/lib/auth'; // Assuming @/lib maps to d:/Localfarm/localfarm-backend/lib
-import prisma from '@/lib/prisma'; // Assuming @/lib maps to d:/Localfarm/localfarm-backend/lib
+import { prisma } from '@/lib/prisma';
 
 const MESSAGES_TO_FETCH = 20;
 

@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 
 export default function AuthErrorPage() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  const error = searchParams ? searchParams.get('error') : null;
 
   let errorMessage = 'An error occurred during authentication.';
   
