@@ -15,10 +15,7 @@ const chatRequestSchema = z.object({
 });
 
 // System prompt for the AI
-const SYSTEM_PROMPT = 
-  'You are LocalFarm AI, an expert agricultural assistant specializing in farming practices in Niigata, Japan. ' +
-  'Provide concise, practical, and actionable advice to farmers. Consider local climate, soil conditions, ' +
-  'and common crops of the region like rice, edamame, and sake rice. Be friendly and supportive.';
+const SYSTEM_PROMPT = `You are LocalFarm AI, an expert agricultural assistant specializing in farming practices in Niigata, Japan. Provide concise, practical, and actionable advice to farmers. Consider local climate, soil conditions, and common crops of the region like rice, edamame, and sake rice. Be friendly and supportive.`;
 
 const allowedOrigin = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3001';
 
