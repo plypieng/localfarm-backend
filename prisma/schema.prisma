@@ -5,7 +5,7 @@
 // We're using PostgreSQL. The URL is loaded from the .env file.
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("PRISMA_DATABASE_URL")
 }
 
 // 2. Generator: Specifies that you want to generate Prisma Client.
