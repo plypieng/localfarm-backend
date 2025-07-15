@@ -47,10 +47,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   return res.status(405).json({ message: 'Method not allowed' });
 }
 
+// Define the type for sensor readings
+type SensorReading = {
+  id: string;
+  timestamp: string;
+  value: number;
+  type: string;
+};
+
 function getMockSensorData(sensorId: string) {
   // Generate some random sensor data for demo purposes
   const today = new Date();
-  const readings = [];
+  const readings: SensorReading[] = [];
   
   // Generate 24 hours of readings
   for (let i = 0; i < 24; i++) {
