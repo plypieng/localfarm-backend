@@ -89,9 +89,10 @@ export async function chatWithAI(message: string, history: { role: 'user' | 'ass
 export async function* streamChatCompletion(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): AsyncGenerator<string> {
   try {
     const stream = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Or 'gpt-4-turbo' or other preferred model
+      model: 'gpt-4o-mini', // Using gpt-4o-mini as requested
       messages: messages,
       stream: true,
+      max_tokens: 1024, // Increased for longer responses
     });
 
     for await (const chunk of stream) {
