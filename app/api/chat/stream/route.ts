@@ -17,28 +17,37 @@ const chatRequestSchema = z.object({
 // System prompt for the AI
 const SYSTEM_PROMPT = `You are LocalFarm AI, an expert agricultural assistant specializing in farming practices in Niigata, Japan. Provide concise, practical, and actionable advice to farmers. Consider local climate, soil conditions, and common crops of the region like rice, edamame, and sake rice. Be friendly and supportive.`;
 
-const allowedOrigin = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3001';
+const allowedOrigins = [
+  process.env.NEXT_PUBLIC_WEB_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+].filter(Boolean) as string[];
+
+const getCorsHeaders = (origin: string | null) => {
+  const headers: { [key: string]: string } = {
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+  if (origin && allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
+};
 
 export async function OPTIONS(request: Request) {
+  const origin = request.headers.get('origin');
   return new Response(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': allowedOrigin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
+    headers: getCorsHeaders(origin),
   });
 }
 
 export async function POST(request: Request) {
-  const headers = {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  const origin = request.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
 
   if (request.method !== 'POST') {
-    return NextResponse.json({ error: 'Method not allowed' }, { status: 405, headers });
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders });
   }
 
   // const userId = await getCurrentUserId();
@@ -53,9 +62,9 @@ export async function POST(request: Request) {
     validatedData = chatRequestSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400, headers });
+      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400, headers: corsHeaders });
     }
-    return NextResponse.json({ error: 'Bad request' }, { status: 400, headers });
+    return NextResponse.json({ error: 'Bad request' }, { status: 400, headers: corsHeaders });
   }
 
   const { message: userMessageContent, history: clientHistory = [] } = validatedData;
@@ -115,10 +124,9 @@ export async function POST(request: Request) {
       },
     });
 
-    const allowedOrigin = request.headers.get('origin') || '*';
     return new Response(readableStream, {
       headers: {
-        ...headers,
+        ...corsHeaders,
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
@@ -132,6 +140,6 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.message.includes('OPENAI_API_KEY')) {
         errorMessage = 'OpenAI API key is not configured or invalid.';
     }
-    return NextResponse.json({ error: errorMessage }, { status: 500, headers });
+    return NextResponse.json({ error: errorMessage }, { status: 500, headers: corsHeaders });
   }
 }
