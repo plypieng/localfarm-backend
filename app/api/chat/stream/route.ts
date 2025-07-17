@@ -31,8 +31,14 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const headers = {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
   if (request.method !== 'POST') {
-    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405, headers });
   }
 
   // const userId = await getCurrentUserId();
@@ -47,9 +53,9 @@ export async function POST(request: Request) {
     validatedData = chatRequestSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid request data', details: error.errors }, { status: 400, headers });
     }
-    return NextResponse.json({ error: 'Bad request' }, { status: 400 });
+    return NextResponse.json({ error: 'Bad request' }, { status: 400, headers });
   }
 
   const { message: userMessageContent, history: clientHistory = [] } = validatedData;
@@ -109,12 +115,13 @@ export async function POST(request: Request) {
       },
     });
 
+    const allowedOrigin = request.headers.get('origin') || '*';
     return new Response(readableStream, {
       headers: {
+        ...headers,
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': allowedOrigin,
       },
     });
 
@@ -125,6 +132,6 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.message.includes('OPENAI_API_KEY')) {
         errorMessage = 'OpenAI API key is not configured or invalid.';
     }
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500, headers });
   }
 }
