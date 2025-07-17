@@ -35,10 +35,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized: User not authenticated.' }, { status: 401 });
-  }
+  // const userId = await getCurrentUserId();
+  // if (!userId) {
+  //   return NextResponse.json({ error: 'Unauthorized: User not authenticated.' }, { status: 401 });
+  // }
+  const userId = 'temp-test-user'; // Hardcoded for testing
 
   let validatedData;
   try {
@@ -54,14 +55,14 @@ export async function POST(request: Request) {
   const { message: userMessageContent, history: clientHistory = [] } = validatedData;
 
   try {
-    // 1. Save user's message to the database
-    await prisma.chatMessage.create({
-      data: {
-        userId: userId,
-        role: 'user',
-        content: userMessageContent,
-      },
-    });
+    // 1. Save user's message to the database (disabled for testing)
+    // await prisma.chatMessage.create({
+    //   data: {
+    //     userId: userId,
+    //     role: 'user',
+    //     content: userMessageContent,
+    //   },
+    // });
 
     // 2. Prepare messages for OpenAI
     const messages: ChatCompletionMessageParam[] = [
@@ -90,20 +91,20 @@ export async function POST(request: Request) {
         } finally {
           controller.close();
 
-          // 5. Save accumulated AI response to the database after stream ends
-          if (accumulatedAIResponse.trim()) {
-            try {
-              await prisma.chatMessage.create({
-                data: {
-                  userId: userId,
-                  role: 'assistant',
-                  content: accumulatedAIResponse.trim(),
-                },
-              });
-            } catch (dbError) {
-              console.error('Failed to save AI response to DB:', dbError);
-            }
-          }
+          // 5. Save accumulated AI response to the database after stream ends (disabled for testing)
+          // if (accumulatedAIResponse.trim()) {
+          //   try {
+          //     await prisma.chatMessage.create({
+          //       data: {
+          //         userId: userId,
+          //         role: 'assistant',
+          //         content: accumulatedAIResponse.trim(),
+          //       },
+          //     });
+          //   } catch (dbError) {
+          //     console.error('Failed to save AI response to DB:', dbError);
+          //   }
+          // }
         }
       },
     });
