@@ -92,7 +92,7 @@ export async function* streamChatCompletion(messages: OpenAI.Chat.Completions.Ch
       model: 'gpt-4.1', // Switched to gpt-4.1 as requested
       messages: messages,
       stream: true,
-      max_tokens: 1024, // Increased for longer responses
+      max_tokens: 2048, // Increased for longer responses
     });
 
     for await (const chunk of stream) {
