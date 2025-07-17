@@ -86,19 +86,24 @@ export async function chatWithAI(message: string, history: { role: 'user' | 'ass
   }
 }
 
-export async function getChatCompletion(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): Promise<string> {
+export async function* streamChatCompletion(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): AsyncGenerator<string> {
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo', // Switched to gpt-3.5-turbo for compatibility
+    const stream = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo', // Using gpt-3.5-turbo for compatibility
       messages: messages,
-      stream: false, // Disabled for debugging
-      max_tokens: 1024,
+      stream: true,
+      max_tokens: 1024, // Increased for longer responses
     });
 
-    return response.choices[0].message.content || '';
-
+    for await (const chunk of stream) {
+      if (chunk.choices[0]?.delta?.content) {
+        yield chunk.choices[0].delta.content;
+      }
+    }
   } catch (error) {
-    console.error('Error getting chat completion:', error);
-    throw error;
+    console.error('Error streaming chat completion:', error);
+    // You might want to throw the error or yield a specific error message chunk
+    // For now, just logging and stopping the generator
+    throw error; 
   }
 }
