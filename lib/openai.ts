@@ -89,7 +89,7 @@ export async function chatWithAI(message: string, history: { role: 'user' | 'ass
 export async function getChatCompletion(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'o4-mini', // Using o4-mini reasoning model as requested
+      model: 'gpt-3.5-turbo', // Switched to gpt-3.5-turbo for compatibility
       messages: messages,
       stream: false, // Disabled for debugging
       max_tokens: 1024,
