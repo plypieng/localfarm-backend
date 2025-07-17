@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUserId } from '@/lib/auth'; // Assuming @/lib maps to d:/Localfarm/localfarm-backend/lib
-import { streamChatCompletion } from '@/lib/openai';
+import { getChatCompletion } from '@/lib/openai';
 import { prisma } from '@/lib/prisma';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
@@ -61,76 +61,27 @@ export async function POST(request: Request) {
   const { message: userMessageContent, history: clientHistory = [] } = validatedData;
 
   try {
-    // 1. Save user's message to the database (disabled for testing)
-    // await prisma.chatMessage.create({
-    //   data: {
-    //     userId: userId,
-    //     role: 'user',
-    //     content: userMessageContent,
-    //   },
-    // });
-
-    // 2. Prepare messages for OpenAI
+    // 1. Prepare messages for OpenAI
     const messages: ChatCompletionMessageParam[] = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...clientHistory.map(item => ({ role: item.role as 'user' | 'assistant', content: item.content })),
       { role: 'user', content: userMessageContent },
     ];
 
-    // 3. Get the streaming response from OpenAI
-    const stream = streamChatCompletion(messages);
-    let accumulatedAIResponse = '';
+    // 2. Get the complete response from OpenAI
+    const aiResponse = await getChatCompletion(messages);
 
-    // 4. Create a new ReadableStream to send to the client
-    const readableStream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder();
-        try {
-          for await (const chunk of stream) {
-            accumulatedAIResponse += chunk;
-            controller.enqueue(encoder.encode(chunk));
-          }
-        } catch (error) {
-          console.error('Error during stream processing:', error);
-          // Optionally enqueue an error message to the client stream
-          controller.enqueue(encoder.encode(JSON.stringify({ error: 'Error processing AI response.' })));
-        } finally {
-          controller.close();
+    // 3. Save user's and AI's messages to the database (disabled for testing)
 
-          // 5. Save accumulated AI response to the database after stream ends (disabled for testing)
-          // if (accumulatedAIResponse.trim()) {
-          //   try {
-          //     await prisma.chatMessage.create({
-          //       data: {
-          //         userId: userId,
-          //         role: 'assistant',
-          //         content: accumulatedAIResponse.trim(),
-          //       },
-          //     });
-          //   } catch (dbError) {
-          //     console.error('Failed to save AI response to DB:', dbError);
-          //   }
-          // }
-        }
-      },
-    });
-
-    const allowedOrigin = request.headers.get('origin') || '*';
-    return new Response(readableStream, {
-      headers: {
-        ...headers,
-        'Content-Type': 'text/event-stream; charset=utf-8',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
+    // 4. Return the AI response
+    return NextResponse.json({ response: aiResponse }, { status: 200, headers });
 
   } catch (error) {
-    console.error('Failed to process chat stream request:', error);
-    // Check if it's an OpenAI API error or other type
+    console.error('Failed to process chat request:', error);
     let errorMessage = 'Failed to process chat request.';
-    if (error instanceof Error && error.message.includes('OPENAI_API_KEY')) {
-        errorMessage = 'OpenAI API key is not configured or invalid.';
+    if (error instanceof Error) {
+        // A more specific error from OpenAI might be in error.message
+        errorMessage = error.message;
     }
     return NextResponse.json({ error: errorMessage }, { status: 500, headers });
   }

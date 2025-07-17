@@ -86,24 +86,19 @@ export async function chatWithAI(message: string, history: { role: 'user' | 'ass
   }
 }
 
-export async function* streamChatCompletion(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): AsyncGenerator<string> {
+export async function getChatCompletion(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): Promise<string> {
   try {
-    const stream = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: 'o4-mini', // Using o4-mini reasoning model as requested
       messages: messages,
-      stream: true,
-      max_tokens: 1024, // Increased for longer responses
+      stream: false, // Disabled for debugging
+      max_tokens: 1024,
     });
 
-    for await (const chunk of stream) {
-      if (chunk.choices[0]?.delta?.content) {
-        yield chunk.choices[0].delta.content;
-      }
-    }
+    return response.choices[0].message.content || '';
+
   } catch (error) {
-    console.error('Error streaming chat completion:', error);
-    // You might want to throw the error or yield a specific error message chunk
-    // For now, just logging and stopping the generator
-    throw error; 
+    console.error('Error getting chat completion:', error);
+    throw error;
   }
 }
